@@ -438,6 +438,15 @@ app.post("/mia/api/cancel-flight/:id", (req, res) => {
   });
 });
 
+app.put("/mia/api/set-done-flight/:id", (req, res) => {
+  const id = req.params.id;
+  const sql = "UPDATE `book` SET `status` = ? WHERE id = ?";
+  db.query(sql, ["done", id], (err, result) => {
+    if (err) return res.json({ status: 500 });
+    return res.json({ status: 200 });
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server is now running on port ${PORT}`);
 });
