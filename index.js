@@ -15,6 +15,7 @@ const db = mysql.createConnection({
   user: process.env.SERVER_USER,
   password: process.env.SERVER_PASSWORD,
   database: process.env.SERVER_DATABASE,
+  port: PORT,
 });
 
 const createEncryptedToken = (object_of_data) => {
