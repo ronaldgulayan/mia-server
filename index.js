@@ -4,22 +4,30 @@ const mysql = require("mysql");
 const app = express();
 const bcrypt = require("bcrypt");
 require("dotenv").config();
-const PORT = process.env.PORT || 8888;
+// const PORT = PORT || 8888;
 const jwt = require("jsonwebtoken");
+
+const SERVER_HOST = "mysql-157906-0.cloudclusters.net";
+const SERVER_USER = "admin";
+const SERVER_PASSWORD = "KDYlkikS";
+const SERVER_DATABASE = "mia";
+const SECRET_KEY =
+  "9546ca14c95cf1af067c5a71b54ed0736dc94047469d2db0dc09ec581cc6cf37243716a471e1905931e4ea4393e353f6c27e367c9de387d28d2da073b87b6cf6";
+const PORT = 18169;
 
 app.use(cors());
 app.use(express.json());
 
 const db = mysql.createConnection({
-  host: process.env.SERVER_HOST,
-  user: process.env.SERVER_USER,
-  password: process.env.SERVER_PASSWORD,
-  database: process.env.SERVER_DATABASE,
+  host: SERVER_HOST,
+  user: SERVER_USER,
+  password: SERVER_PASSWORD,
+  database: SERVER_DATABASE,
   port: PORT,
 });
 
 const createEncryptedToken = (object_of_data) => {
-  return jwt.sign(object_of_data, process.env.SECRET_KEY);
+  return jwt.sign(object_of_data, SECRET_KEY);
 };
 
 const getPlaceId = (airport) => {
