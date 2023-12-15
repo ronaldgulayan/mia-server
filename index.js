@@ -369,9 +369,47 @@ app.post("/mia/api/book", (req, res) => {
   );
 });
 
-app.get("/mia/api/get-flights/:id", (req, res) => {
+app.get("/mia/api/get-return-flight/:book_id", (req, res) => {
+  const id = req.params.book_id;
+  const sql = "SELECT * FROM `return_book` WHERE book_id = ?";
+  db.query(sql, [id], (err, result) => {
+    return res.json({ status: 200, data: { ...result[0] } });
+  });
+});
+
+app.get("/mia/api/get-oneway-flight/:book_id", (req, res) => {
+  const id = req.params.book_id;
+  const sql = "SELECT * FROM `one_way_book` WHERE book_id = ?";
+  db.query(sql, [id], (err, result) => {
+    return res.json({ status: 200, data: { ...result[0] } });
+  });
+});
+
+app.get("/mia/api/get-flights/:id/:status", (req, res) => {
   const id = req.params.id;
-  const sql = "SELECT * FROM `book` WHERE `user_id` = ?";
+  const status = req.params.status;
+  const sql = "SELECT * FROM `book` WHERE `user_id` = ? AND `status` = ?";
+  db.query(sql, [id, status], (err, result) => {
+    if (err) {
+      return res.json({ status: 500 });
+    }
+    if (result.length === 0) {
+      return res.json({
+        status: 200,
+        data: [],
+      });
+    }
+    return res.json({
+      status: 200,
+      data: [...result],
+    });
+  });
+});
+
+app.get("/mia/api/get-history-flights/:id", (req, res) => {
+  const id = req.params.id;
+  const sql =
+    "SELECT * FROM `book` WHERE `user_id` = ? AND `status` IN ('done', 'cancelled')";
   db.query(sql, [id], (err, result) => {
     if (err) {
       return res.json({ status: 500 });
@@ -389,19 +427,14 @@ app.get("/mia/api/get-flights/:id", (req, res) => {
   });
 });
 
-app.get("/mia/api/get-return-flight/:book_id", (req, res) => {
-  const id = req.params.book_id;
-  const sql = "SELECT * FROM `return_book` WHERE book_id = ?";
+app.post("/mia/api/cancel-flight/:id", (req, res) => {
+  const id = req.params.id;
+  const sql = "UPDATE `book` SET `status` = 'cancelled' WHERE id = ?";
   db.query(sql, [id], (err, result) => {
-    return res.json({ status: 200, data: { ...result[0] } });
-  });
-});
-
-app.get("/mia/api/get-oneway-flight/:book_id", (req, res) => {
-  const id = req.params.book_id;
-  const sql = "SELECT * FROM `one_way_book` WHERE book_id = ?";
-  db.query(sql, [id], (err, result) => {
-    return res.json({ status: 200, data: { ...result[0] } });
+    if (err) {
+      return res.json({ status: 500 });
+    }
+    return res.json({ status: 200 });
   });
 });
 
