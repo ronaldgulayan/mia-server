@@ -18,6 +18,8 @@ const db = mysql.createConnection({
   port: PORT,
 });
 
+// hello world
+
 const createEncryptedToken = (object_of_data) => {
   return jwt.sign(object_of_data, process.env.SECRET_KEY);
 };
