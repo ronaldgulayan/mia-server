@@ -329,9 +329,11 @@ app.post("/mia/api/book", (req, res) => {
     departure,
     _return,
     payment_method,
+    flight_id,
   } = req.body;
+
   let sql =
-    "INSERT INTO book (`user_id`, `type`, `child`, `adult`, `senior`, `pwd`, `class`, `total`, `status`, `reference`, `payment_method`) value (?,?,?,?,?,?,?,?,?,?,?)";
+    "INSERT INTO book (`user_id`, `type`, `child`, `adult`, `senior`, `pwd`, `class`, `total`, `status`, `reference`, `payment_method`, `message`) value (?,?,?,?,?,?,?,?,?,?,?,?)";
   db.query(
     sql,
     [
@@ -346,6 +348,7 @@ app.post("/mia/api/book", (req, res) => {
       "pending",
       reference,
       payment_method,
+      "",
     ],
     (err, result) => {
       if (err) {
@@ -356,7 +359,11 @@ app.post("/mia/api/book", (req, res) => {
         sql =
           "INSERT INTO return_book (`book_id`, `from`, `to`, `departure`, `return`) value (?,?,?,?,?)";
         db.query(sql, [bookId, from, to, departure, _return], (errd, ress) => {
-          return res.json({ status: 200 });
+          const update_sql =
+            "UPDATE available_flights SET count = count + 1 WHERE id = ?";
+          db.query(update_sql, [flight_id], (u_err, u_res) => {
+            return res.json({ status: 200 });
+          });
         });
       } else if (type === "one_way") {
         sql =
