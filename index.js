@@ -395,8 +395,31 @@ app.get("/mia/api/get-oneway-flight/:book_id", (req, res) => {
 app.get("/mia/api/get-flights/:id/:status", (req, res) => {
   const id = req.params.id;
   const status = req.params.status;
-  const sql = "SELECT * FROM `book` WHERE `user_id` = ? AND `status` = ?";
+  let sql = "SELECT * FROM `book` WHERE `user_id` = ? AND `status` = ?";
+
   db.query(sql, [id, status], (err, result) => {
+    if (err) {
+      return res.json({ status: 500 });
+    }
+    if (result.length === 0) {
+      return res.json({
+        status: 200,
+        data: [],
+      });
+    }
+    return res.json({
+      status: 200,
+      data: [...result],
+    });
+  });
+});
+
+app.get("/mia/api/get-pending-and-done/:id", (req, res) => {
+  const id = req.params.id;
+  let sql =
+    "SELECT * FROM `book` WHERE `user_id` = ? AND `status` IN ('pending', 'paid') ORDER BY date DESC";
+
+  db.query(sql, [id], (err, result) => {
     if (err) {
       return res.json({ status: 500 });
     }
@@ -416,7 +439,7 @@ app.get("/mia/api/get-flights/:id/:status", (req, res) => {
 app.get("/mia/api/get-history-flights/:id", (req, res) => {
   const id = req.params.id;
   const sql =
-    "SELECT * FROM `book` WHERE `user_id` = ? AND `status` IN ('done', 'cancelled')";
+    "SELECT * FROM `book` WHERE `user_id` = ? AND `status` IN ('done', 'cancelled') ORDER BY date DESC";
   db.query(sql, [id], (err, result) => {
     if (err) {
       return res.json({ status: 500 });
