@@ -18,12 +18,13 @@ const db = mysql.createConnection({
   port: PORT,
 });
 
+
 //const db = mysql.createConnection({
-//  host: 'localhost',
-//  user: 'root',
-//  password: 'root',
-//  database: 'mia',
-//  port: PORT,
+//    host: 'localhost',
+//    user: 'root',
+//    password: 'root',
+//    database: 'mia',
+//    //port: PORT,
 //});
 
 const createEncryptedToken = (object_of_data) => {
@@ -514,6 +515,63 @@ app.get("/mia/api/get-total-infos", (req, res) => {
                 })
             })
         })
+    })
+})
+
+app.get("/mia/api/get-available-flights/:availability", (req, res) => {
+    const availability = req.params.availability;
+    let sql = "SELECT af.id, p1.id AS from_place_id, p1.airport_name AS from_place_name, p2.id AS to_place_id, p2.airport_name AS to_place_name, af.price, af.availability FROM available_flights AS af JOIN flight_places AS p1 ON af.from_place_id = p1.id JOIN flight_places AS p2 ON af.to_place_id = p2.id";
+    let data = [];
+    if (availability == 1 || availability == 0) {
+        sql = "SELECT af.id, p1.id AS from_place_id, p1.airport_name AS from_place_name, p2.id AS to_place_id, p2.airport_name AS to_place_name, af.price, af.availability FROM available_flights AS af JOIN flight_places AS p1 ON af.from_place_id = p1.id JOIN flight_places AS p2 ON af.to_place_id = p2.id WHERE af.availability = ?";
+        data = [availability]
+    }
+    db.query(sql, data, (err, result) => {
+        if (err) return res.json({ status: 500 })
+        return res.json({ status: 200, data: result })
+    })
+})
+
+app.put("/mia/api/update-flight", (req, res) => {
+    const { flightId, fromPlaceId, toPlaceId, availability, price } = req.body
+    const sql = "UPDATE available_flights SET from_place_id = ?, to_place_id = ?, availability = ?, price = ? WHERE id = ?"
+    db.query(sql, [fromPlaceId, toPlaceId, availability, price, flightId], (err, result) => {
+        if (err) return res.json({ status: 500 })
+    })
+    res.json({ status: 200 })
+})
+
+app.put("/mia/api/insert-flight", (req, res) => {
+    const { fromId, toId, price } = req.body;
+    const sql = "INSERT INTO available_flights (from_place_id, to_place_id, price, availability, count) values (?,?,?,1,0)"
+    db.query(sql, [fromId, toId, price], (err, result) => {
+        if (err) return res.json({ status: 500 })
+        return res.json({ status: 200 })
+    })
+})
+
+app.get("/mia/api/get-accounts", (req, res) => {
+    const sql = "SELECT * FROM useraccounts";
+    db.query(sql, [], (err, result) => {
+        if (err) return res.json({ status: 500 })
+        return res.json({ status: 200, data: result })
+    })
+})
+
+app.get("/mia/api/get-books", (req, res) => {
+    const sql = "SELECT book.*, concat(first_name, ' ', last_name) as fullname from book join useraccounts on book.user_id = useraccounts.id"
+    db.query(sql, [], (err, result) => {
+        if (err) return res.json({ status: 500 })
+        return res.json({ status: 200, data: result })
+    })
+})
+
+app.put("/mia/api/set-done", (req, res) => {
+    const { id } = req.body;
+    const sql = "UPDATE book SET status = 'paid' WHERE id = ?";
+    db.query(sql, [id], (err, result) => {
+        if (err) return res.json({ status: 500 })
+        return res.json({ status: 200 })
     })
 })
 
