@@ -18,6 +18,14 @@ const db = mysql.createConnection({
   port: PORT,
 });
 
+//const db = mysql.createConnection({
+//  host: 'localhost',
+//  user: 'root',
+//  password: 'root',
+//  database: 'mia',
+//  port: PORT,
+//});
+
 const createEncryptedToken = (object_of_data) => {
   return jwt.sign(object_of_data, process.env.SECRET_KEY);
 };
@@ -476,6 +484,38 @@ app.put("/mia/api/set-done-flight/:id", (req, res) => {
     return res.json({ status: 200 });
   });
 });
+
+app.get("/mia/api/get-top-fights", (req, res) => {
+    const url = "SELECT from_place.airport_name AS from_place, to_place.airport_name AS to_place, count FROM available_flights JOIN flight_places AS from_place ON available_flights.from_place_id = from_place.id JOIN flight_places AS to_place ON available_flights.to_place_id = to_place.id ORDER BY count DESC LIMIT 3"
+    db.query(url, [], (err, result) => {
+        if (err) {
+            return res.json({ status: 500 })
+        }
+        return res.json({ status: 200, data: result })
+    })
+})
+
+app.get("/mia/api/get-total-infos", (req, res) => {
+    let url = "SELECT SUM(total) as total from book"
+    db.query(url, [], (err, result) => {
+        if (err) res.json({ status: 500 })
+        const totalEarnings = result[0].total;
+        url = "SELECT COUNT(*) as count FROM book WHERE status = 'pending'";
+        db.query(url, [], (err, result) => {
+            const pendingCount = result[0].count
+            url = "SELECT COUNT(*) as available from available_flights WHERE availability = 1";
+            db.query(url, [], (err, result) => {
+                const totalFlights = result[0].available;
+                return res.json({
+                    status: 200,
+                    earnings: totalEarnings,
+                    pending: pendingCount,
+                    flights: totalFlights
+                })
+            })
+        })
+    })
+})
 
 app.listen(PORT, () => {
   console.log(`Server is now running on port ${PORT}`);
