@@ -4,7 +4,7 @@ const mysql = require("mysql");
 const app = express();
 const bcrypt = require("bcrypt");
 require("dotenv").config();
-const PORT = process.env.PORT || 10001;
+const PORT = process.env.PORT || 19962;
 const jwt = require("jsonwebtoken");
 
 app.use(cors());
